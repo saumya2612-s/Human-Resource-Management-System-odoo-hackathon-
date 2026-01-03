@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Attendance</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="page-container">
+
+<h2>Attendance</h2>
+
+<h3>Mark Attendance</h3>
+
+<input id="empId" placeholder="Employee ID">
+
+<select id="status">
+<option value="Present">Present</option>
+<option value="Absent">Absent</option>
+<option value="Leave">Leave</option>
+</select>
+
+<button onclick="markAttendance()">Mark Attendance</button>
+
+<p id="msg"></p>
+
+<hr>
+
+<h3>Attendance Records</h3>
+
+<button onclick="getAttendance()">Load Attendance</button>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Employee</th>
+<th>Status</th>
+<th>Date</th>
+</tr>
+</thead>
+
+<tbody id="data"></tbody>
+</table>
+
+<a href="dashboard_admin.html">Back</a>
+
+</div>
+
+<script>
+async function markAttendance(){
+const res = await fetch("http://localhost:5000/attendance",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+employee_id:document.getElementById("empId").value,
+status:document.getElementById("status").value
+})
+});
+const data = await res.json();
+document.getElementById("msg").innerText=data.message;
+}
+
+async function getAttendance(){
+const res = await fetch("http://localhost:5000/attendance");
+const data = await res.json();
+
+let rows="";
+data.forEach(a=>{
+rows+=`
+<tr>
+<td>${a.id}</td>
+<td>${a.name}</td>
+<td>${a.status}</td>
+<td>${a.date}</td>
+</tr>`;
+});
+
+document.getElementById("data").innerHTML=rows;
+}
+</script>
+
+</body>
+</html>

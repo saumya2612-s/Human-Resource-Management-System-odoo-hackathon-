@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>HRMS</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#0d6efd;
+  margin:0;
+}
+.container,.page{
+  width:420px;
+  margin:50px auto;
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 0 10px black;
+}
+input,select{
+  width:100%;
+  padding:8px;
+  margin-top:8px;
+}
+button{
+  width:100%;
+  padding:10px;
+  background:black;
+  color:white;
+  border:none;
+  border-radius:5px;
+  margin-top:10px;
+}
+a{cursor:pointer;color:#0d6efd}
+.hide{display:none}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+th,td{
+  border:1px solid gray;
+  padding:6px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage" class="container">
+<h2>Login</h2>
+<input id="loginEmail" placeholder="Email">
+<input id="loginPass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="loginMsg"></p>
+<a onclick="show('registerPage')">Create Account</a>
+</div>
+
+<!-- REGISTER -->
+<div id="registerPage" class="container hide">
+<h2>Register</h2>
+<input id="regName" placeholder="Name">
+<input id="regEmail" placeholder="Email">
+<input id="regPass" type="password" placeholder="Password">
+<select id="regRole">
+<option value="employee">Employee</option>
+<option value="admin">Admin</option>
+</select>
+<button onclick="register()">Register</button>
+<p id="regMsg"></p>
+<a onclick="show('loginPage')">Back to Login</a>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="adminDash" class="page hide">
+<h2>Admin Dashboard</h2>
+<h3>Welcome <span id="adminName"></span></h3>
+
+<button onclick="show('employeesPage')">Employees</button>
+<button onclick="show('attendancePage')">Attendance</button>
+<button onclick="show('leavePage')">Leaves</button>
+<button onclick="logout()">Logout</button>
+</div>
+
+<!-- EMPLOYEE DASHBOARD -->
+<div id="empDash" class="page hide">
+<h2>Employee Dashboard</h2>
+<h3>Welcome <span id="empName"></span></h3>
+
+<button onclick="show('profilePage')">Profile</button>
+<button onclick="show('attendancePage')">Attendance</button>
+<button onclick="show('leavePage')">Leaves</button>
+<button onclick="logout()">Logout</button>
+</div>
+
+<!-- PROFILE -->
+<div id="profilePage" class="page hide">
+<h2>My Profile</h2>
+<p><b>Name:</b> <span id="pname"></span></p>
+<p><b>Email:</b> <span id="pemail"></span></p>
+<p><b>Role:</b> <span id="prole"></span></p>
+<button onclick="back()">Back</button>
+</div>
+
+<!-- EMPLOYEES -->
+<div id="employeesPage" class="page hide">
+<h2>Employees</h2>
+<button onclick="loadEmployees()">Load Employees</button>
+<table>
+<thead>
+<tr>
+<th>ID</th><th>Name</th><th>Email</th><th>Position</th><th>Salary</th>
+</tr>
+</thead>
+<tbody id="empTable"></tbody>
+</table>
+
+<h3>Add Employee</h3>
+<input id="en" placeholder="Name">
+<input id="ee" placeholder="Email">
+<input id="ep" placeholder="Position">
+<input id="es" placeholder="Salary">
+<button onclick="addEmployee()">Add</button>
+<p id="empMsg"></p>
+<button onclick="back()">Back</button>
+</div>
+
+<!-- ATTENDANCE -->
+<div id="attendancePage" class="page hide">
+<h2>Attendance</h2>
+<input id="attId" placeholder="Employee ID">
+<select id="attStatus">
+<option>Present</option>
+<option>Absent</option>
+<option>Leave</option>
+</select>
+<button onclick="markAtt()">Mark</button>
+<p id="attMsg"></p>
+
+<button onclick="loadAtt()">Load Attendance</button>
+
+<table>
+<thead>
+<tr><th>ID</th><th>Name</th><th>Status</th><th>Date</th></tr>
+</thead>
+<tbody id="attTable"></tbody>
+</table>
+
+<button onclick="back()">Back</button>
+</div>
+
+<!-- LEAVE -->
+<div id="leavePage" class="page hide">
+<h2>Leave</h2>
+<input id="lvId" placeholder="Employee ID">
+<input id="lvType" placeholder="Type">
+<input type="date" id="lvFrom">
+<input type="date" id="lvTo">
+<button onclick="applyLeave()">Apply</button>
+<p id="leaveMsg"></p>
+
+<button onclick="loadLeave()">Load Leaves</button>
+
+<table>
+<thead>
+<tr>
+<th>ID</th><th>Name</th><th>Type</th><th>From</th><th>To</th><th>Status</th>
+</tr>
+</thead>
+<tbody id="leaveTable"></tbody>
+</table>
+
+<button onclick="back()">Back</button>
+</div>
+
+<script>
+const API="http://localhost:5000";
+
+// show-hide pages
+function show(id){
+document.querySelectorAll(".container,.page").forEach(p=>p.classList.add("hide"));
+document.getElementById(id).classList.remove("hide");
+}
+
+// REGISTER
+async function register(){
+const res=await fetch(API+"/auth/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+name:regName.value,email:regEmail.value,password:regPass.value,role:regRole.value
+})
+});
+const d=await res.json();
+regMsg.innerText=d.message;
+}
+
+// LOGIN
+async function login(){
+const res=await fetch(API+"/auth/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+email:loginEmail.value,password:loginPass.value
+})
+});
+const d=await res.json();
+loginMsg.innerText=d.message;
+
+if(d.user){
+localStorage.setItem("user",JSON.stringify(d.user));
+if(d.user.role==="admin"){ adminName.innerText=d.user.name; show("adminDash"); }
+else{ empName.innerText=d.user.name; show("empDash"); }
+}
+}
+
+// BACK BUTTON
+function back(){
+const u=JSON.parse(localStorage.getItem("user"));
+if(u.role==="admin") show("adminDash");
+else show("empDash");
+}
+
+// PROFILE
+(function(){
+const u=JSON.parse(localStorage.getItem("user")||null);
+if(u){
+pname.innerText=u.name;
+pemail.innerText=u.email;
+prole.innerText=u.role;
+}
+})();
+
+// EMPLOYEES
+async function loadEmployees(){
+const d=await (await fetch(API+"/employees")).json();
+empTable.innerHTML="";
+d.forEach(e=>{
+empTable.innerHTML+=`<tr>
+<td>${e.id}</td><td>${e.name}</td><td>${e.email}</td>
+<td>${e.position}</td><td>${e.salary}</td></tr>`;
+});
+}
+
+async function addEmployee(){
+await fetch(API+"/employees",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+name:en.value,email:ee.value,position:ep.value,salary:es.value
+})
+});
+empMsg.innerText="Employee Added";
+loadEmployees();
+}
+
+// ATTENDANCE
+async function markAtt(){
+const d=await (await fetch(API+"/attendance",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({employee_id:attId.value,status:attStatus.value})
+})).json();
+attMsg.innerText=d.message;
+}
+
+async function loadAtt(){
+const d=await (await fetch(API+"/attendance")).json();
+attTable.innerHTML="";
+d.forEach(a=>{
+attTable.innerHTML+=`<tr>
+<td>${a.id}</td><td>${a.name}</td><td>${a.status}</td><td>${a.date}</td></tr>`;
+});
+}
+
+// LEAVE
+async function applyLeave(){
+const d=await (await fetch(API+"/leaves",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+employee_id:lvId.value,type:lvType.value,from_date:lvFrom.value,to_date:lvTo.value
+})
+})).json();
+leaveMsg.innerText=d.message;
+}
+
+async function loadLeave(){
+const d=await (await fetch(API+"/leaves")).json();
+leaveTable.innerHTML="";
+d.forEach(l=>{
+leaveTable.innerHTML+=`<tr>
+<td>${l.id}</td><td>${l.name}</td><td>${l.type}</td>
+<td>${l.from_date}</td><td>${l.to_date}</td><td>${l.status}</td></tr>`;
+});
+}
+
+// LOGOUT
+function logout(){
+localStorage.clear();
+show("loginPage");
+}
+</script>
+
+</body>
+</html>

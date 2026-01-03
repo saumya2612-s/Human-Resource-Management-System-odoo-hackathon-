@@ -1,0 +1,27 @@
+<head>
+<link rel="stylesheet" href="style.css">
+<title>Employee Dashboard</title>
+</head>
+
+<div class="page-container">
+<h2>Employee Dashboard</h2>
+<h3>Welcome <span id="emp"></span></h3>
+
+<a href="profile.html">Profile</a>
+<a href="attendance.html">Attendance</a>
+<a href="leaves.html">Leave</a>
+
+<button onclick="logout()">Logout</button>
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("user"));
+if(!user || user.role!=="employee"){ alert("Unauthorized"); location.href="login.html"; }
+
+document.getElementById("emp").innerText=user.name;
+
+function logout(){
+localStorage.clear();
+location.href="login.html";
+}
+</script>

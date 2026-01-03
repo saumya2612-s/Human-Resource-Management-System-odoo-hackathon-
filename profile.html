@@ -1,0 +1,30 @@
+<head>
+<link rel="stylesheet" href="style.css">
+<title>Profile</title>
+</head>
+
+<div class="page-container">
+<h2>My Profile</h2>
+
+<p><b>Name:</b> <span id="name"></span></p>
+<p><b>Email:</b> <span id="email"></span></p>
+<p><b>Role:</b> <span id="role"></span></p>
+
+<button onclick="back()">Back</button>
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("user"));
+if(!user) location.href="login.html";
+
+document.getElementById("name").innerText=user.name;
+document.getElementById("email").innerText=user.email;
+document.getElementById("role").innerText=user.role;
+
+function back(){
+if(user.role==="admin")
+location.href="dashboard_admin.html";
+else
+location.href="dashboard_employee.html";
+}
+</script>
